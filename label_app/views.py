@@ -12,10 +12,11 @@ def index():
 
     if form.validate_on_submit():
         pred_label = utils.label_pred(form)
-        if pred_tags:
-            flash('Catégorie(s) proposée(s): {}'.format(pred_tags))
-        else:
-            flash('Une erreur s\'est produite... aucun résultat')
+        flash('Catégorie(s) proposée(s): {}'.format(pred_label))
+        # if pred_label.any():
+        #     flash('Catégorie(s) proposée(s): {}'.format(pred_label))
+        # else:
+        #     flash('Une erreur s\'est produite... aucun résultat')
 
     return render_template('predict.html', title='Proposition de catégorie', form=form)
 

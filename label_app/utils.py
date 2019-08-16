@@ -28,8 +28,10 @@ def init_obj():
     tfidf_transformer = load(data_filename_memmap, mmap_mode='r')
     data_filename_memmap = os.path.join(folder, 'svc_memmap')
     gs_svc = load(data_filename_memmap, mmap_mode='r')
+    data_filename_memmap = os.path.join(folder, 'labels_memmap')
+    label_names = load(data_filename_memmap, mmap_mode='r')
 
-    return wordDict, vectorizer, tokenizer, tfidf_transformer, gs_svc
+    return wordDict, vectorizer, tokenizer, tfidf_transformer, gs_svc, label_names
 
 def word_replace(text, wd):
     """
@@ -47,11 +49,10 @@ def tokenize_body(body_full, tokenizer):
     wordnet_lemmatizer = WordNetLemmatizer()
     sw = stopwords.words('english')
     list_a = tokenizer.tokenize(body_full)
-    token_list = [wordnet_lemmatizer.lemmatize(word) for word in list_a if /
-                  (word not in sw and not word.isdigit())]
+    token_list = [wordnet_lemmatizer.lemmatize(word) for word in list_a if (word not in sw and not word.isdigit())]
     return " ".join(token_list)
 
-def preprocess_api(X, wd, tokenizer):
+def preprocess_api(X, wd, tokenizer, vectorizer):
     """
     Préprocessing des posts
     """
@@ -74,13 +75,18 @@ def label_pred(form):
     body = form.body_raw.data
     X = pd.DataFrame(np.array([[title, body]]), columns = ['Title', 'Body'])
     # Chargement des objets Python
-    wordDict, vectorizer, tokenizer, tfidf_transformer, gs_svc = init_obj()
+    wordDict, vectorizer, tokenizer, tfidf_transformer, gs_svc, label_names = init_obj()
     # Preprocessing
-    X_preproc = preprocess_api(X, wordDict, tokenizer)
+    X_preproc = preprocess_api(X, wordDict, tokenizer, vectorizer)
     X_tfidf = tfidf_transformer.transform(X_preproc).toarray()
     # Prédiction
+    y_pred = []
     try:
-        y_pred = gs_svc.predict(X_tfidf)
+        y_pred_idx = gs_svc.predict(X_tfidf)[0]
+        # y_pred = y_pred_idx
+        for index  in range(len(y_pred_idx)):
+          if y_pred_idx[index] == 1:
+            y_pred.append(label_names[index])
     except:
         y_pred = None
     return y_pred

@@ -11,7 +11,7 @@
           <CAPTION>Nouveau message</CAPTION>
           <TR>
             <TH>{{ form.title_raw.label }}</TH>
-            <TD>{{ form.title_raw(type="string") }}</br>
+            <TD>{{ form.title_raw(type="string", cols="60", rows="2") }}</br>
               {% for error in form.title_raw.errors %}
                 <span style="color: red;">{{ error }}</span>
               {% endfor %}
@@ -19,7 +19,7 @@
           </TR>
           <TR>
             <TH>{{ form.body_raw.label }}</TH>
-            <TD>{{ form.body_raw(type="string") }}</br>
+            <TD>{{ form.body_raw(type="string", cols="60", rows="10") }}</br>
               {% for error in form.body_raw.errors %}
                 <span style="color: red;">{{ error }}</span>
               {% endfor %}
