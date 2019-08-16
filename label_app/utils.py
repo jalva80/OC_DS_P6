@@ -1,0 +1,106 @@
+
+import pandas as pd
+import numpy as np
+import os
+from joblib import load
+from bs4 import BeautifulSoup
+from nltk import download
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+download('stopwords')
+download('wordnet')
+from flask import flash
+
+def init_obj():
+    """
+    Récupération des objets Python avec joblib
+    """
+    # répertoire joblib
+    folder = './joblib_memmap'
+    # Objets
+    data_filename_memmap = os.path.join(folder, 'worddict_memmap')
+    wordDict = load(data_filename_memmap, mmap_mode='r')
+    data_filename_memmap = os.path.join(folder, 'vector_memmap')
+    vectorizer = load(data_filename_memmap, mmap_mode='r')
+    data_filename_memmap = os.path.join(folder, 'tokeniz_memmap')
+    tokenizer = load(data_filename_memmap, mmap_mode='r')
+    data_filename_memmap = os.path.join(folder, 'tfidf_memmap')
+    tfidf_transformer = load(data_filename_memmap, mmap_mode='r')
+    data_filename_memmap = os.path.join(folder, 'svc_memmap')
+    gs_svc = load(data_filename_memmap, mmap_mode='r')
+
+    return wordDict, vectorizer, tokenizer, tfidf_transformer, gs_svc
+
+def word_replace(text, wd):
+    """
+    Replace words found in Worddict
+    """
+    for key in wd:
+        text = text.replace(key, wd[key])
+    return text
+
+
+def tokenize_body(body_full):
+    """
+    Tokenisation du post avec lemmatisation et suppression des stopwords
+    """
+    wordnet_lemmatizer = WordNetLemmatizer()
+    sw = stopwords.words('english')
+    list_a = tokenizer.tokenize(body_full)
+    token_list = [wordnet_lemmatizer.lemmatize(word) for word in list_a if /
+                  (word not in sw and not word.isdigit())]
+    return " ".join(token_list)
+
+def preprocess_api(X, wd):
+    """
+    Préprocessing des posts
+    """
+    X['Body'] = X['Title'] + ' ' + X['Body']
+    X['Body'] = X['Body'].apply(lambda x: BeautifulSoup(x, 'html.parser').text)
+    X['Body'] = X['Body'].apply(lambda x: x.lower())
+    X['Body'] = X['Body'].apply(lambda x: word_replace(x, wd))
+    X['Body'] = X['Body'].apply(tokenize_body)
+
+    X_count = vectorizer.transform(X['Body'])
+    X_preprocessed = X_count.toarray()
+    return X_preprocessed
+
+def predict_api(X):
+    """
+    Prédiction des labels
+    """
+    # On récupère les champs renseignés
+    title = form.title_raw.data
+    body = form.body_raw.data
+    X = pd.DataFrame(np.array([[title, body]]), columns = ['Title', 'Body'])
+    # Chargement des objets Python
+    wordDict, vectorizer, tokenizer, tfidf_transformer, gs_svc = init_obj()
+    # Preprocessing
+    X_preproc = preprocess_api(X, wordDict, )
+    X_tfidf = tfidf_transformer.transform(X_preproc).toarray()
+    # Prédiction
+    try:
+        y_pred = gs_svc.predict(X_tfidf)
+    except:
+        y_pred = None
+    return y_pred
+
+def delay_pred(form):
+    """
+    Prédiction du retard
+    """
+    # On récupère les champs renseignés
+    title = form.title_raw.data
+    body = form.body_raw.data
+    X = pd.DataFrame(np.array([[title, body]]), columns = ['Title', 'Body'])
+    # Chargement des objets Python
+    wordDict, vectorizer, tokenizer, tfidf_transformer, gs_svc = init_obj()
+    # Formatage des features
+    X_pred_std = format_feat(form, days_cat, month_cat, col_cies, dep_cat,\
+                             arr_cat, std_scale, time_cat)
+    # Prédiction
+    try:
+        y_pred = int(round(reg.predict(X_pred_std)[0], 0))
+    except:
+        y_pred = None
+    return y_pred
