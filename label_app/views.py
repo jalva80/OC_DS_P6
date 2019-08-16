@@ -11,7 +11,7 @@ def index():
     form = NewMsgForm()
 
     if form.validate_on_submit():
-        # pred_label = utils.label_pred(form)
+        pred_label = utils.label_pred(form)
         if pred_tags:
             flash('Catégorie(s) proposée(s): {}'.format(pred_tags))
         else:

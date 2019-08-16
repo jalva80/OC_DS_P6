@@ -65,7 +65,7 @@ def preprocess_api(X, wd):
     X_preprocessed = X_count.toarray()
     return X_preprocessed
 
-def predict_api(X):
+def label_pred(form):
     """
     Prédiction des labels
     """
@@ -81,26 +81,6 @@ def predict_api(X):
     # Prédiction
     try:
         y_pred = gs_svc.predict(X_tfidf)
-    except:
-        y_pred = None
-    return y_pred
-
-def delay_pred(form):
-    """
-    Prédiction du retard
-    """
-    # On récupère les champs renseignés
-    title = form.title_raw.data
-    body = form.body_raw.data
-    X = pd.DataFrame(np.array([[title, body]]), columns = ['Title', 'Body'])
-    # Chargement des objets Python
-    wordDict, vectorizer, tokenizer, tfidf_transformer, gs_svc = init_obj()
-    # Formatage des features
-    X_pred_std = format_feat(form, days_cat, month_cat, col_cies, dep_cat,\
-                             arr_cat, std_scale, time_cat)
-    # Prédiction
-    try:
-        y_pred = int(round(reg.predict(X_pred_std)[0], 0))
     except:
         y_pred = None
     return y_pred
