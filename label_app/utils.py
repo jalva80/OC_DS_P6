@@ -40,7 +40,7 @@ def word_replace(text, wd):
     return text
 
 
-def tokenize_body(body_full):
+def tokenize_body(body_full, tokenizer):
     """
     Tokenisation du post avec lemmatisation et suppression des stopwords
     """
@@ -51,7 +51,7 @@ def tokenize_body(body_full):
                   (word not in sw and not word.isdigit())]
     return " ".join(token_list)
 
-def preprocess_api(X, wd):
+def preprocess_api(X, wd, tokenizer):
     """
     Préprocessing des posts
     """
@@ -59,7 +59,7 @@ def preprocess_api(X, wd):
     X['Body'] = X['Body'].apply(lambda x: BeautifulSoup(x, 'html.parser').text)
     X['Body'] = X['Body'].apply(lambda x: x.lower())
     X['Body'] = X['Body'].apply(lambda x: word_replace(x, wd))
-    X['Body'] = X['Body'].apply(tokenize_body)
+    X['Body'] = X['Body'].apply(lambda x: tokenize_body(x, tokenizer))
 
     X_count = vectorizer.transform(X['Body'])
     X_preprocessed = X_count.toarray()
@@ -76,7 +76,7 @@ def label_pred(form):
     # Chargement des objets Python
     wordDict, vectorizer, tokenizer, tfidf_transformer, gs_svc = init_obj()
     # Preprocessing
-    X_preproc = preprocess_api(X, wordDict, )
+    X_preproc = preprocess_api(X, wordDict, tokenizer)
     X_tfidf = tfidf_transformer.transform(X_preproc).toarray()
     # Prédiction
     try:
